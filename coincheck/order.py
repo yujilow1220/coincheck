@@ -17,21 +17,24 @@ class Order(object):
         self.secret_key = secret_key
 
 
-    def create(self,rate, amount, order_type, pair):
+    def create(self, rate, amount, order_type, pair):
         ''' create new order function
         :param rate: float
         :param amount: float
         :param order_type: str; set 'buy' or 'sell'
         :param pair: str; set 'btc_jpy' 
         '''
+            
         nonce = nounce()
         payload = { 'rate': rate,
                     'amount': amount,
                     'order_type': order_type,
-                    'pair': pair
+                    'pair': pair,
                     }
         url= 'https://coincheck.com/api/exchange/orders'
         body = 'rate={rate}&amount={amount}&order_type={order_type}&pair={pair}'.format(**payload)
+        if order_type == 'market_buy':
+            body = 'market_buy_amount={amount}&order_type={order_type}&pair={pair}'.format(**payload)
         message = nonce + url + body
         signature = hmac.new(self.secret_key.encode('utf-8'), message.encode('utf-8'), hashlib.sha256).hexdigest()
         headers = {
@@ -44,7 +47,10 @@ class Order(object):
     
     def buy_btc_jpy(self, **kwargs):
         return self.create(order_type='buy', pair='btc_jpy',**kwargs) 
-    
+
+    def buy_btc_jpy_market(self, **kwargs):
+        return self.create(order_type='market_buy', pair='btc_jpy', **kwargs)
+
     def sell_btc_jpy(self, **kwargs):
         return self.create(order_type='sell', pair='btc_jpy',**kwargs) 
     
